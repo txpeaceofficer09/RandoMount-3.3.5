@@ -325,11 +325,59 @@ local function GetMountTexture(flying)
 	return select(4, GetCompanionInfo("MOUNT", math.random(1, GetNumCompanions("MOUNT"))))
 end
 
---[[
-local function GetMountTexture()
-	return select(4, GetCompanionInfo("MOUNT", math.random(1, GetNumCompanions("MOUNT"))))
+function button.UpdateMounts()
+	if GetNumCompanions("MOUNT") == 0 then return end
+	
+	local mounts = {
+		regularFly = {},
+		swiftFly = {},
+		regularGround = {},
+		swiftGround = {},
+		swim = {},
+		zone = {}
+	}
+	
+	for _, data in pairs(mountDB) do
+		if IsKnownMount(data.spellID) then
+			if data.zone then
+				if not mounts.zone[data.zone] then mounts.zone[data.zone] = {} end
+				tinsert(mounts.zone[data.zone], data.name)
+			elseif data.swimming then
+				tinsert(mounts.swim, data.name)
+			elseif data.flying then
+				if data.fast then
+					tinsert(mounts.swiftFly, data.name)
+				else
+					tinsert(mounts.regularFly, data.name)
+				end
+			else
+				if data.fast then
+					tinsert(mounts.swiftGround, data.name)
+				else
+					tinsert(mounts.regularGround, data.name)
+				end
+			end
+		end
+	end
+
+	local mountName = ""
+
+	if mounts.zone and mounts.zone[GetRealZoneText()] and #mounts.zone[GetRealZoneText()] > 0 then
+		mountName = mounts.zone[GetRealZoneText()][math.random(1, #mounts.zone[GetRealZoneText()])]
+	elseif mounts.swim and #mounts.swim > 0 and IsSwimming() then
+		mountName = mounts.swim[math.random(1, #mounts.swim)]
+	elseif #mounts.swiftFly > 0 and CanReallyFly() then
+		mountName = mounts.swiftFly[math.random(1, #mounts.swiftFly)]
+	elseif #mounts.regularFly > 0 and CanReallyFly() then
+		mountName = mounts.regularFly[math.random(1, #mounts.regularFly)]
+	elseif #mounts.swiftGround > 0 then
+		mountName = mounts.swiftGround[math.random(1, #mounts.swiftGround)]
+	elseif #mounts.regularGround > 0 then
+		mountName = mounts.regularGround[math.random(1, #mounts.regularGround)]
+	end
+	
+	button:SetAttribute("macrotext", "#showtooltip\n/cancelaura\n/cast "..mountName)
 end
-]]
 
 function button.CastRandomMount()
 	if InCombatLockdown() then return end
@@ -337,16 +385,15 @@ function button.CastRandomMount()
 
 	--local canFly = IsFlyableArea()
 	local canFly = CanReallyFly()
-    local isSwimming = IsSwimming()
-    local currentZone = GetRealZoneText()
+	local isSwimming = IsSwimming()
+	local currentZone = GetRealZoneText()
 
-    local mounts = { 
-    	regular = {},
-    	swift = {}
-    }
+	local mounts = { 
+		regular = {},
+		swift = {}
+	}
 
 	local swimMounts = {}
-
 	local zoneMounts = {}
 
 	for _, data in pairs(mountDB) do
@@ -396,7 +443,7 @@ button:RegisterForDrag("LeftButton")
 button:SetScript("OnDragStart", function(self) self:StartMoving() end)
 button:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 button:SetAttribute("type", "macro")
-button:SetAttribute("macrotext", "/run RandoMountButton.CastRandomMount()")
+--button:SetAttribute("macrotext", "/run RandoMountButton.CastRandomMount()")
 
 button:SetBackdrop({
     bgFile = "Interface\\Buttons\\WHITE8X8", 
@@ -416,6 +463,8 @@ button:RegisterEvent("PLAYER_ENTERING_WORLD")
 button:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 button:RegisterEvent("ZONE_CHANGED")
 button:RegisterEvent("ZONE_CHANGED_INDOORS")
+button:RegisterEvent("PLAYER_LOGIN")
+button:RegisterEvent("COMPANION_LEARNED")
 
 button:SetScript("OnEvent", function(self, event, ...)
 	if GetNumCompanions("MOUNT") == 0 then
@@ -425,6 +474,8 @@ button:SetScript("OnEvent", function(self, event, ...)
 		self:Show()
 	end
 
+	self.UpdateMounts()
+
 	if event == "PLAYER_ENTERING_WORLD" then
 		SetBindingClick("F7", button:GetName())
 		self.icon:SetTexture(GetMountTexture(CanReallyFly()))
@@ -432,3 +483,10 @@ button:SetScript("OnEvent", function(self, event, ...)
 		self.icon:SetTexture(GetMountTexture(CanReallyFly()))
 	end
 end)
+
+button:SetScript("PostClick", function(self)
+	if InCombatLockdown() then return end
+
+	self.UpdateMounts()
+end)
+
