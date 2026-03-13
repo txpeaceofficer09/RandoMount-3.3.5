@@ -1,4 +1,6 @@
 ## Interface: 30300
 ## Title: RandoMount
 ## Notes: Picks random mount for you to ride.
+## Version: 1.0.0
+## Author: SoonBeSteak
 Core.lua
