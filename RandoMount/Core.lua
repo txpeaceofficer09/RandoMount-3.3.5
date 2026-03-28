@@ -311,6 +311,8 @@ end
 local function GetMountTexture(flying)
 	if GetNumCompanions("MOUNT") == 0 then return end
 
+	--return "Interface\\ICONS\\inv_encrypted13.blp"
+
 	flying = flying or false
 
 	for _, data in pairs(mountDB) do
@@ -347,8 +349,10 @@ function button.UpdateMounts()
 			elseif data.flying then
 				if data.fast then
 					tinsert(mounts.swiftFly, data.name)
+					tinsert(mounts.swiftGround, data.name) -- Add swift flying mount to ground mount
 				else
 					tinsert(mounts.regularFly, data.name)
+					tinsert(mounts.regularGround, data.name) -- Add regular flying mount to ground mount
 				end
 			else
 				if data.fast then
