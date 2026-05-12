@@ -471,6 +471,8 @@ button:RegisterEvent("PLAYER_LOGIN")
 button:RegisterEvent("COMPANION_LEARNED")
 
 button:SetScript("OnEvent", function(self, event, ...)
+	if InCombatLockdown() then return end
+
 	if GetNumCompanions("MOUNT") == 0 then
 		self:Hide()
 		return
