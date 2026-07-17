@@ -349,10 +349,10 @@ function button.UpdateMounts()
 			elseif data.flying then
 				if data.fast then
 					tinsert(mounts.swiftFly, data.name)
-					tinsert(mounts.swiftGround, data.name) -- Add swift flying mount to ground mount
+					--tinsert(mounts.swiftGround, data.name) -- Add swift flying mount to ground mount
 				else
 					tinsert(mounts.regularFly, data.name)
-					tinsert(mounts.regularGround, data.name) -- Add regular flying mount to ground mount
+					--tinsert(mounts.regularGround, data.name) -- Add regular flying mount to ground mount
 				end
 			else
 				if data.fast then
